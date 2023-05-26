@@ -1,2 +1,2 @@
 # Bsc-IT
-my bachelor's courses project 
+This is a Timer Project in Assembly Language for Microprocessor Course
