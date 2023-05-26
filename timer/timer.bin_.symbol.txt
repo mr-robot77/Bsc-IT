@@ -1,0 +1,16 @@
+< THE SYMBOL TABLE >  timer.bin_  --  emu8086 assembler version: 4.08 
+===================================================================================================
+Name                     	Offset    	Size      	Type      	Segment   
+===================================================================================================
+NEXT_CHAR                	07C0C     	-1        	LABEL     	(NOSEG)   
+STOP                     	07C30     	-1        	LABEL     	(NOSEG)   
+COUNT                    	07C4A     	1         	VAR       	(NOSEG)   
+C1                       	07C4B     	1         	VAR       	(NOSEG)   
+MSG                      	07C4C     	1         	VAR       	(NOSEG)   
+_LOCATION_COUNTER__N1_L4E	07C7D     	-1        	LABEL     	(NOSEG)   
+SET_VIDEO_MODE           	07C7D     	-1        	NEAR      	(NOSEG)   
+CLEAR_SCREEN             	07C8C     	-1        	NEAR      	(NOSEG)   
+===================================================================================================
+[ 1/26/2016  --  12:52:57 AM ] 
+< END >
+ 

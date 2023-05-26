@@ -1,0 +1,4 @@
+flat assembler  version 1.64
+C:\emu8086\MyBuild\timer-exe.bin.~asm [30]:
+cmp     count,00
+error: invalid operand.

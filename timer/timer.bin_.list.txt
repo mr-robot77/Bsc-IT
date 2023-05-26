@@ -1,0 +1,161 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+timer.bin_ -- emu8086 assembler version: 4.08  
+ 
+[ 1/26/2016  --  12:52:57 AM ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       ; this sample shows the use of a timer function (int 15h / 86h)
+[   2]        :                                       ; this code prints some chars with 1 second delay.
+[   3]        :                                       
+[   4]        :                                       ; note: Windows XP does not support this interrupt (always sets CF=1),
+[   5]        :                                       ; to test this program in real environment write it to a floppy disk using
+[   6]        :                                       ; compiled writebin.asm. after sucessfull  compilation of both files,
+[   7]        :                                       ; type this from command prompt:   writebin timer.bin
+[   8]        :                                       
+[   9]        :                                       ; note: floppy disk boot record will be overwritten.
+[  10]        :                                       ;       the floppy will not be useable under windows/dos until
+[  11]        :                                       ;       you reformat it, data on floppy disk may be lost.
+[  12]        :                                       ;       use empty floppy disks only.
+[  13]        :                                       
+[  14]        :                                       name "timer"
+[  15]        :                                       
+[  16]        :                                       #make_boot#
+[  17]        :                                       org     7c00h
+[  18]        :                                       
+[  19]        :                                       ; set the segment registers
+[  20]    7C00: 8C C8                                 mov     ax, cs
+[  21]    7C02: 8E D8                                 mov     ds, ax
+[  22]    7C04: 8E C0                                 mov     es, ax
+[  23]        :                                       
+[  24]        :                                       
+[  25]    7C06: E8 74 00                              call set_video_mode
+[  26]    7C09: E8 80 00                              call clear_screen
+[  27]        :                                       
+[  28]        :                                       
+[  29]    7C0C:                                       next_char:
+[  30]    7C0C: 80 3E 4A 7C 00                        cmp     count, 0
+[  31]    7C11: 74 1D                                 jz      stop
+[  32]        :                                       
+[  33]        :                                       ; print char:
+[  34]    7C13: A0 4B 7C                              mov     al, c1
+[  35]    7C16: B4 0E                                 mov     ah, 0eh
+[  36]    7C18: CD 10                                 int     10h
+[  37]        :                                       
+[  38]        :                                       ; next ascii char:
+[  39]    7C1A: FE 06 4B 7C                           inc     c1
+[  40]    7C1E: FE 0E 4A 7C                           dec     count
+[  41]        :                                       
+[  42]        :                                       ; set 1 million microseconds interval (1 second)
+[  43]    7C22: B9 0F 00                              mov     cx, 0fh
+[  44]    7C25: BA 40 42                              mov     dx, 4240h
+[  45]    7C28: B4 86                                 mov     ah, 86h
+[  46]    7C2A: CD 15                                 int     15h
+[  47]        :                                       
+[  48]        :                                       ; stop any error:
+[  49]    7C2C: 72 02                                 jc      stop
+[  50]        :                                       
+[  51]    7C2E: EB DC                                 jmp     next_char
+[  52]        :                                       
+[  53]    7C30:                                       stop:
+[  54]        :                                       
+[  55]        :                                       ; print message using bios int 10h/13h function
+[  56]    7C30: B0 01                                 mov al, 1
+[  57]    7C32: B7 00                                 mov bh, 0
+[  58]    7C34: B3 2F                                 mov bl, 0010_1111b
+[  59]    7C36: B9 31 00                              mov cx, msg_size
+[  60]    7C39: B2 04                                 mov dl, 4
+[  61]    7C3B: B6 0F                                 mov dh, 15
+[  62]    7C3D: BD 4C 7C                              mov bp, offset msg
+[  63]    7C40: B4 13                                 mov ah, 13h
+[  64]    7C42: CD 10                                 int 10h
+[  65]        :                                       
+[  66]        :                                       ; wait for any key...
+[  67]    7C44: B4 00                                 mov ah, 0
+[  68]    7C46: CD 16                                 int 16h
+[  69]        :                                       
+[  70]        :                                       
+[  71]    7C48: CD 19                                 int 19h            ; reboot
+[  72]        :                                       
+[  73]        :                                       
+[  74]    7C4A: 1A                                    count   db      26
+[  75]    7C4B: 61                                    c1      db      'a'
+[  76]        :                                       
+[  77]        :                                       
+[  78]    7C4C: 72 65 6D 6F 76 65 20 66 6C 6F 70 70   msg db "remove floppy disk and press any key to reboot..."
+                79 20 64 69 73 6B 20 61 6E 64 20 70 
+                72 65 73 73 20 61 6E 79 20 6B 65 79 
+                20 74 6F 20 72 65 62 6F 6F 74 2E 2E 
+                2E                                  
+[  79]    7C7D:                                       msg_size = $ - msg
+[  80]        :                                       
+[  81]        :                                       
+[  82]        :                                       
+[  83]        :                                       ; set video mode and disable blinking (for compatibility).
+[  84]    7C7D:                                       set_video_mode proc
+[  85]    7C7D: B4 00                                 mov     ah, 0
+[  86]    7C7F: B0 03                                 mov     al, 3 ; text mode 80x25, 16 colors, 8 pages
+[  87]    7C81: CD 10                                 int     10h
+[  88]        :                                       ; blinking disabled for compatibility with dos,
+[  89]        :                                       ; emulator and windows prompt do not blink anyway.
+[  90]    7C83: B8 03 10                              mov     ax, 1003h
+[  91]    7C86: BB 00 00                              mov     bx, 0    ; disable blinking.
+[  92]    7C89: CD 10                                 int     10h
+[  93]    7C8B: C3                                    ret
+[  94]        :                                       set_video_mode endp
+[  95]        :                                       
+[  96]        :                                       
+[  97]        :                                       
+[  98]        :                                       
+[  99]        :                                       ; clear the screen by scrolling entire screen window,
+[ 100]        :                                       ; and set cursor position on top.
+[ 101]        :                                       ; default attribute is changed to black on white.
+[ 102]    7C8C:                                       clear_screen proc near
+[ 103]    7C8C: 50                                    push    ax      ; store registers...
+[ 104]    7C8D: 1E                                    push    ds      ;
+[ 105]    7C8E: 53                                    push    bx      ;
+[ 106]    7C8F: 51                                    push    cx      ;
+[ 107]    7C90: 57                                    push    di      ;
+[ 108]        :                                       
+[ 109]    7C91: B8 40 00                              mov     ax, 40h
+[ 110]    7C94: 8E D8                                 mov     ds, ax  ; for getting screen parameters.
+[ 111]    7C96: B4 06                                 mov     ah, 06h ; scroll up function id.
+[ 112]    7C98: B0 00                                 mov     al, 0   ; scroll all lines!
+[ 113]    7C9A: B7 F0                                 mov     bh, 1111_0000b  ; attribute for new lines.
+[ 114]    7C9C: B5 00                                 mov     ch, 0   ; upper row.
+[ 115]    7C9E: B1 00                                 mov     cl, 0   ; upper col.
+[ 116]    7CA0: BF 84 00                              mov     di, 84h ; rows on screen -1,
+[ 117]    7CA3: 8A 35                                 mov     dh, [di] ; lower row (byte).
+[ 118]    7CA5: BF 4A 00                              mov     di, 4ah ; columns on screen,
+[ 119]    7CA8: 8A 15                                 mov     dl, [di]
+[ 120]    7CAA: FE CA                                 dec     dl      ; lower col.
+[ 121]    7CAC: CD 10                                 int     10h
+[ 122]        :                                       
+[ 123]        :                                       ; set cursor position to top
+[ 124]        :                                       ; of the screen:
+[ 125]    7CAE: B7 00                                 mov     bh, 0   ; current page.
+[ 126]    7CB0: B2 00                                 mov     dl, 0   ; col.
+[ 127]    7CB2: B6 00                                 mov     dh, 0   ; row.
+[ 128]    7CB4: B4 02                                 mov     ah, 02
+[ 129]    7CB6: CD 10                                 int     10h
+[ 130]        :                                       
+[ 131]    7CB8: 5F                                    pop     di      ; re-store registers...
+[ 132]    7CB9: 59                                    pop     cx      ;
+[ 133]    7CBA: 5B                                    pop     bx      ;
+[ 134]    7CBB: 1F                                    pop     ds      ;
+[ 135]    7CBC: 58                                    pop     ax      ;
+[ 136]        :                                       
+[ 137]    7CBD: C3                                    ret
+[ 138]        :                                       clear_screen endp
+[ 139]        :                                       
+ 
+===================================================================================================
+ 
+
+
+
+
+===================================================================================================
