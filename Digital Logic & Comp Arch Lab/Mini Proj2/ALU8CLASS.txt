@@ -1,0 +1,210 @@
+
+-------------------------------------------------------------------------------------
+----------------------------------- 1BIT FULL ADDER ---------------------------------
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+entity full_adder is
+Port ( a : in STD_LOGIC;
+b : in STD_LOGIC;
+ci : in STD_LOGIC;
+s : out STD_LOGIC;
+co : out STD_LOGIC);
+end full_adder;
+architecture bhv_full of full_adder is
+begin
+s <= (a xor b) xor ci;
+co <= (a and b) or ((a xor b) and ci);
+end bhv_full;
+--------------------------------------------------------------------------------
+------------------------------------ 1BIT AND ---------------------------------
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+entity AND_1bit is
+Port ( i_a : in STD_LOGIC_VECTOR ;
+i_b : in STD_LOGIC_VECTOR ;
+result_and : out STD_LOGIC_VECTOR);
+end AND_1bit;
+architecture Bhv_and_1bit of AND_1bit is
+begin
+result_and <=i_a and i_b ;
+end Bhv_and_8bit;
+--------------------------------------------------------------------------------
+------------------------------------ 1BIT OR ----------------------------------
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+entity OR_1bit is
+Port ( in_a : in STD_LOGIC_VECTOR;
+in_b : in STD_LOGIC_VECTOR;
+result_or : out STD_LOGIC_VECTOR );
+end OR_1bit;
+architecture Bhv_or_8bit of OR_8bit is
+begin
+result_or <=in_a or in_b;
+end Bhv_or_1bit;
+
+---------------------------------------------------------------------------------------
+------------------------ Mux 2to1 -----------------------------------------------------
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity mux_2to1 is
+    Port ( binvert : in  STD_LOGIC_VECTOR(1 DOWNTO 0);
+                 b : in std_logic ;
+                 O : out STD_LOGIC);
+end mux_2to1_top;
+
+architecture Behavioral of mux_2to1 is
+begin
+
+    O <= NOT b when (binvert  = '1') else b ;
+
+end Behavioral;
+
+
+
+
+
+---------------------------------------------------------------------------------------
+------------------------ Overflow -----------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------------------------
+------------------------ 1BIT ALU -----------------------------------------------------
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+entity 1BIT_ALU is 
+  port ( a_in : in std_logic;
+         b_in : in std_logic;
+         carry_in : in std_logic:=0 ;
+         operation : in std_logic_vector (3 downto 0);
+         less : in std_logic ;
+         carry_out : out std_logic ;
+         Result: out std_logic);
+
+end 1BIT_ALU ;
+
+ARCHITECTURE structure OF 1BIT_ALU IS
+
+
+    COMPONENT AND_1bit
+        Port ( i_a : in STD_LOGIC_VECTOR ;
+i_b : in STD_LOGIC_VECTOR ;
+result_and : out STD_LOGIC_VECTOR);
+    END COMPONENT;
+
+    COMPONENT OR_1bit 
+        Port ( in_a : in STD_LOGIC_VECTOR;
+in_b : in STD_LOGIC_VECTOR;
+result_or : out STD_LOGIC_VECTOR ); 
+    END COMPONENT;
+    
+    COMPONENT full_adder
+        Port ( a : in STD_LOGIC;
+               b : in STD_LOGIC;
+              ci : in STD_LOGIC;
+               s : out STD_LOGIC;
+              co : out STD_LOGIC);
+    END COMPONENT;
+    
+    COMPONENT binvert 
+
+      Port ( binvert : in  STD_LOGIC_VECTOR(1 DOWNTO 0);
+                 b : in std_logic ;
+                 O : out STD_LOGIC);
+        
+    END COMPONENT;
+
+signal o : std_logic ;
+
+BEGIN
+
+    R_and: AND_1bit PORT MAP (i_a => a_in , i_b => b_in , result_and => Result );
+    R_or: OR_1bit PORT MAP (in_a => a_in , in_b => b_in , result_or => Result 
+    R_add: full_adder PORT MAP (a => a_in , b => b_in , ci => carry_in , s => Result , co => carry_out );
+    R_sub: full_adder PORT MAP (a => a_in , o => b_in , ci => carry_in , s => Result , co => carry_out);
+    R_slt: slt PORT MAP ();  
+    
+
+END structure;
+    
+
+
+
+----------------------------------------------------------------------------------------
+------------------------ LAST ALU -----------------------------------------------------
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+entity LAST_ALU is 
+  port ( a_input : in std_logic;
+         b_input : in std_logic;
+         c_in : in std_logic:=0 ;
+         op: in std_logic_vector (2 downto 0);
+         b_inv : in std_logic_vector (1 downto 0);
+         lss : in std_logic ;
+         c_out : out std_logic ;
+         res : out std_logic );
+         overflow : out std_logic );
+
+end LAST_ALU ;
+
+
+
+
+
+
+----------------------------------------------------------------------------------------
+------------------------ 8-BIT ALU -----------------------------------------------------
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_arith.ALL;
+USE ieee.std_logic_unsigned.ALL;
+ENTITY 8bit_alu IS
+PORT(
+a : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+b : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+op : IN STD_LOGIC_VECTOR( 2 DOWNTO 0);
+result : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+cout : OUT STD_LOGIC;
+overflow : OUT STD_LOGIC);
+END 8bit_alu;
+ARCHITECTURE str OF 8bit_alu IS BEGIN
+
+begin
+  
+ bit1: 1BIT_ALU port map();
+ bit3: 1BIT_ALU port map();
+ bit4: 1BIT_ALU port map();
+ bit5: 1BIT_ALU port map();
+ bit6: 1BIT_ALU port map();
+ bit7: 1BIT_ALU port map();
+ bit8: LAST_ALU port map();
+  
+END str ;
+
+------------------------------------------------------------------------------------------

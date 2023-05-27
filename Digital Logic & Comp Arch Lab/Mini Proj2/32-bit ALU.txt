@@ -1,0 +1,741 @@
+32-bit ALU:
+(1)   mux_for_invertion file inverts the input signal(a or b) to execute sub, slt, nor, beq and bne instructions. Its 2-to-1 mux basically.
+(2)   mux_for_operation file deals with selecting what kind of operation is needed to be executed using 4-to-1 mux. It would select from and(00), or(01), add/sub(10) and slt(11).
+(3)   alu_1bit file perform all the required instructions but only 1 bit.
+(4)   alu file perform functions of 32-bit ALU in 32 bit mips processor.
+
+
+ALUctrl: It extracts 4-bit alu control signal from mips instruction.
+
+
+Main control: Main control circuit uses information from 6-bit op code to control 11 output control signals.
+**********************************************************************************
+START OF 1BIT ALU VHDL FILE
+**********************************************************************************
+
+
+--*************************************************************** 
+--  
+-- Author: Sikander
+--    
+-- File: alu_1bit.vhd 
+-- Design units: 
+--  ENTITY alu_1bit  
+--  ARCHITECTURE alu_1bit_operation
+-- Purpose: perform functions of 1-bit ALU   
+--  Inputs:  1 bit input a, b, carryIn, less, set_slt and 4 bit ALUctl control signal
+--  Outputs: 1 bit result, carryOut
+--   
+-- Library/Package: 
+--  ieee.std_logic_1164: to use std_logic 
+-- 
+-- Software/Version:  
+--  Simulated by: Altera Quartus v11.0 
+--  Synthesized by: Altera Quartus v11.0 
+--   
+-- Revision History 
+--  Version 1.0: 
+--  Date: 9/29/2006 
+--  Comments: Original  
+-- 
+--***************************************************************
+library ieee;
+use ieee.std_logic_1164.all;
+entity alu_1bit is
+port(
+ctrSignal: in std_logic_vector(3 downto 0);
+a,b: in std_logic;
+result: out std_logic;
+carryOut: out std_logic;
+carryIn: in std_logic;
+set_slt: out std_logic;
+less: in std_logic
+);
+end alu_1bit;
+architecture alu_1bit_operation of alu_1bit is
+signal a_final,b_final,and_final,or_final,add_final,slt_final,temp_result: std_logic;
+begin
+ainvert_unit: entity work.mux_for_invertion(invertion)
+port map(input=>a, invert=>ctrSignal(3), output=>a_final);    --inverting a if needed
+binvert_unit: entity work.mux_for_invertion(invertion)
+port map(input=>b, invert=>ctrSignal(2), output=>b_final);    --inverting b if needed
+and_final <= a_final and b_final;                                --doing and operation 
+or_final <= a_final or b_final;
+--carryIn <= ctrSignal(2);
+add_final <= a_final xor b_final xor carryIn;
+set_slt <= add_final;
+carryOut <= (a_final and b_final) or (a_final and carryIn) or (b_final and carryIn);
+--slt_final <= '0';
+operation_unit: entity work.mux_for_operation(mux_4to1)             --passing out 4 results thru 4to1 mux
+port map(control(1)=>ctrSignal(1), control(0)=>ctrSignal(0), 
+input(3)=>and_final, input(2)=>or_final, input(1)=>add_final, input(0)=>less, output=>temp_result);
+result <= temp_result;
+end alu_1bit_operation;
+
+
+**********************************************************************************
+END OF 1BIT ALU VHDL FILE
+**********************************************************************************
+
+
+**********************************************************************************
+START OF MUX OF INVERSION VHDL FILE
+**********************************************************************************
+
+--*************************************************************** 
+--  
+-- Author: Sikander 
+--    
+-- File: mux_for_invertion.vhd 
+-- Design units: 
+--  ENTITY mux_for_invertion  
+--  ARCHITECTURE invertion
+-- Purpose: to invert formal signal when needed   
+--  Inputs: 1 bit input and invert
+--  Outputs: 1 bit output
+--   
+-- Library/Package: 
+--  ieee.std_logic_1164: to use std_logic 
+-- 
+-- Software/Version:  
+--  Simulated by: Altera Quartus v11.0 
+--  Synthesized by: Altera Quartus v11.0 
+--   
+-- Revision History 
+--  Version 1.0: 
+--  Date: 9/29/2006 
+--  Comments: Original  
+-- 
+--***************************************************************
+library ieee;
+use ieee.std_logic_1164.all;
+entity mux_for_invertion is
+port(
+input: in std_logic;
+invert: in std_logic;
+output: out std_logic
+);
+end mux_for_invertion;
+architecture invertion of mux_for_invertion is
+begin
+output <= ((not input) and invert) or (input and (not invert));
+end invertion;
+
+
+**********************************************************************************
+END OF MUX OF INVERSION VHDL FILE
+**********************************************************************************
+
+
+**********************************************************************************
+START OF MUX OF OPERATION VHDL FILE
+**********************************************************************************
+
+--*************************************************************** 
+--  
+-- Author: Sikander
+--    
+-- File: mux_for_operation.vhd 
+-- Design units: 
+--  ENTITY mux_for_operation  
+--  ARCHITECTURE mux_4to1 
+-- Purpose: mux to find out what instruction to execute
+--  Inputs:  2 bit operation signal and 4 bit input
+--  Outputs: 1 bit output
+--   
+-- Library/Package: 
+--  ieee.std_logic_1164: to use std_logic 
+-- 
+-- Software/Version:  
+--  Simulated by: Altera Quartus v11.0 
+--  Synthesized by: Altera Quartus v11.0 
+--   
+-- Revision History 
+--  Version 1.0: 
+--  Date: 9/29/2006 
+--  Comments: Original  
+-- 
+--***************************************************************
+library ieee;
+use ieee.std_logic_1164.all;
+entity mux_for_operation is
+port(
+control: in std_logic_vector(1 downto 0);
+input: in std_logic_vector(3 downto 0);
+output: out std_logic
+);
+end mux_for_operation;
+architecture mux_4to1 of mux_for_operation is
+signal temp: std_logic_vector(3 downto 0);
+begin
+output <= temp(3) or temp(2) or temp(1) or temp(0);
+temp(3) <= (not control(1)) and (not control(0)) and input(3);
+temp(2) <= (not control(1)) and control(0) and input(2);
+temp(1) <= control(1) and (not control(0)) and input(1);
+temp(0) <= control(1) and control(0) and input(0);
+end mux_4to1;
+
+
+
+**********************************************************************************
+END OF MUX OF OPERATION VHDL FILE
+**********************************************************************************
+
+
+**********************************************************************************
+START OF ALU CONTROL VHDL FILE
+**********************************************************************************
+
+--*************************************************************** 
+--  
+-- Author: Sikander
+--    
+-- File: aluctrl.vhd 
+-- Design units: 
+--  ENTITY aluctrl  
+--  ARCHITECTURE aluctrl_behav 
+-- Purpose: to find out alu control signal from mips instruction   
+--  Inputs:  2 bit ALUOp and 6 bit Func code
+--  Outputs: 4 bit ALUctl 
+--   
+-- Library/Package: 
+--  ieee.std_logic_1164: to use std_logic 
+-- 
+-- Software/Version:  
+--  Simulated by: Altera Quartus v11.0 
+--  Synthesized by: Altera Quartus v11.0 
+--   
+-- Revision History 
+--  Version 1.0: 
+--  Date: 9/29/2006 
+--  Comments: Original  
+-- 
+--***************************************************************
+library ieee;
+use ieee.std_logic_1164.all;
+entity aluctrl is
+port
+(
+ALUOp: in std_logic_vector(1 downto 0);
+Func: in std_logic_vector(5 downto 0);
+ALUctl: out std_logic_vector(3 downto 0)
+);
+end aluctrl;
+architecture aluctrl_behav of aluctrl is
+signal p0,p1,p2,p3,p4,p5,p6,p7: std_logic;
+begin
+ALUctl(3) <= p1;
+ALUctl(2) <= p0 or p1 or p2 ;
+ALUctl(1) <= p3 or p4 or p7;
+ALUctl(0) <= p5 or p6;
+
+p0 <= ALUOp(1) and (not ALUOp(0)) and (not Func(2)) and Func(1) and (not Func(0));
+p1 <= ALUOp(1) and (not ALUOp(0)) and (not Func(3)) and Func(2) and Func(1) and Func(0);   --for ain also
+p2 <= (not ALUOp(1)) and ALUOp(0);   
+p3 <= ALUOp(1) and (not ALUOp(0)) and (not Func(3)) and (not Func(2)) and (not Func(0));
+p4 <= (not ALUOp(1));
+p5 <= ALUOp(1) and (not ALUOp(0)) and Func(3) and (not Func(2)) and Func(1) and (not Func(0));
+p6 <= ALUOp(1) and (not ALUOp(0)) and (not Func(3)) and Func(2) and (not Func(1)) and Func(0);
+p7 <= ALUOp(1) and (not ALUOp(0)) and Func(3) and (not Func(2)) and (not Func(0)) and Func(1);
+end aluctrl_behav;
+
+**********************************************************************************
+END OF ALU CONTROL VHDL FILE
+**********************************************************************************
+
+
+**********************************************************************************
+START OF 32-BIT ALU VHDL FILE
+**********************************************************************************
+
+--*************************************************************** 
+--  
+-- Author: Sikander
+--    
+-- File: alu.vhd 
+-- Design units: 
+--  ENTITY alu  
+--  ARCHITECTURE alu_behav 
+-- Purpose: perform functions of 32-bit ALU in 32 bit mips processor   
+--  Inputs:  32 bit a,b and 4 bit ALUctl control signal
+--  Outputs: 32 bit ALUOut and 1 bit zero flag
+--   
+-- Library/Package: 
+--  ieee.std_logic_1164: to use std_logic 
+-- 
+-- Software/Version:  
+--  Simulated by: Altera Quartus v11.0 
+--  Synthesized by: Altera Quartus v11.0 
+--   
+-- Revision History 
+--  Version 1.0: 
+--  Date: 9/29/2006 
+--  Comments: Original  
+-- 
+--***************************************************************
+library ieee;
+use ieee.std_logic_1164.all;
+entity alu is
+port
+(
+ALUctl: in std_logic_vector(3 downto 0);
+A, B: in std_logic_vector(31 downto 0);
+ALUOut: out std_logic_vector(31 downto 0);
+Zero: out std_logic
+);
+end alu;
+
+
+architecture alu_behav of alu is
+signal carry: std_logic_vector(31 downto 0);
+signal get,set: std_logic;
+signal aout: std_logic_vector(31 downto 0);
+begin
+   bit0_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(0), b=>B(0), ctrSignal=>ALUctl, carryIn=>ALUctl(2), less=>set, carryOut=>carry(0), result=>aout(0));
+bit1_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(1), b=>B(1), ctrSignal=>ALUctl, carryIn=>carry(0), less=>'0', carryOut=>carry(1), result=>aout(1));
+bit2_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(2), b=>B(2), ctrSignal=>ALUctl, carryIn=>carry(1), less=>'0', carryOut=>carry(2), result=>aout(2));
+bit3_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(3), b=>B(3), ctrSignal=>ALUctl, carryIn=>carry(2), less=>'0', carryOut=>carry(3), result=>aout(3));
+bit4_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(4), b=>B(4), ctrSignal=>ALUctl, carryIn=>carry(3), less=>'0', carryOut=>carry(4), result=>aout(4));
+bit5_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(5), b=>B(5), ctrSignal=>ALUctl, carryIn=>carry(4), less=>'0', carryOut=>carry(5), result=>aout(5));
+bit6_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(6), b=>B(6), ctrSignal=>ALUctl, carryIn=>carry(5), less=>'0', carryOut=>carry(6), result=>aout(6));
+bit7_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(7), b=>B(7), ctrSignal=>ALUctl, carryIn=>carry(6), less=>'0', carryOut=>carry(7), result=>aout(7));
+bit8_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(8), b=>B(8), ctrSignal=>ALUctl, carryIn=>carry(7), less=>'0', carryOut=>carry(8), result=>aout(8));
+bit9_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(9), b=>B(9), ctrSignal=>ALUctl, carryIn=>carry(8), less=>'0', carryOut=>carry(9), result=>aout(9));
+bit10_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(10), b=>B(10), ctrSignal=>ALUctl, carryIn=>carry(9), less=>'0', carryOut=>carry(10), result=>aout(10));
+bit11_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(11), b=>B(11), ctrSignal=>ALUctl, carryIn=>carry(10), less=>'0', carryOut=>carry(11), result=>aout(11));
+bit12_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(12), b=>B(12), ctrSignal=>ALUctl, carryIn=>carry(11), less=>'0', carryOut=>carry(12), result=>aout(12));
+bit13_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(13), b=>B(13), ctrSignal=>ALUctl, carryIn=>carry(12), less=>'0', carryOut=>carry(13), result=>aout(13));
+bit14_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(14), b=>B(14), ctrSignal=>ALUctl, carryIn=>carry(13), less=>'0', carryOut=>carry(14), result=>aout(14));
+bit15_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(15), b=>B(15), ctrSignal=>ALUctl, carryIn=>carry(14), less=>'0', carryOut=>carry(15), result=>aout(15));
+bit16_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(16), b=>B(16), ctrSignal=>ALUctl, carryIn=>carry(15), less=>'0', carryOut=>carry(16), result=>aout(16));
+bit17_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(17), b=>B(17), ctrSignal=>ALUctl, carryIn=>carry(16), less=>'0', carryOut=>carry(17), result=>aout(17));
+bit18_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(18), b=>B(18), ctrSignal=>ALUctl, carryIn=>carry(17), less=>'0', carryOut=>carry(18), result=>aout(18));
+bit19_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(19), b=>B(19), ctrSignal=>ALUctl, carryIn=>carry(18), less=>'0', carryOut=>carry(19), result=>aout(19));
+bit20_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(20), b=>B(20), ctrSignal=>ALUctl, carryIn=>carry(19), less=>'0', carryOut=>carry(20), result=>aout(20));
+bit21_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(21), b=>B(21), ctrSignal=>ALUctl, carryIn=>carry(20), less=>'0', carryOut=>carry(21), result=>aout(21));
+bit22_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(22), b=>B(22), ctrSignal=>ALUctl, carryIn=>carry(21), less=>'0', carryOut=>carry(22), result=>aout(22));
+bit23_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(23), b=>B(23), ctrSignal=>ALUctl, carryIn=>carry(22), less=>'0', carryOut=>carry(23), result=>aout(23));
+bit24_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(24), b=>B(24), ctrSignal=>ALUctl, carryIn=>carry(23), less=>'0', carryOut=>carry(24), result=>aout(24));
+bit25_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(25), b=>B(25), ctrSignal=>ALUctl, carryIn=>carry(24), less=>'0', carryOut=>carry(25), result=>aout(25));
+bit26_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(26), b=>B(26), ctrSignal=>ALUctl, carryIn=>carry(25), less=>'0', carryOut=>carry(26), result=>aout(26));
+bit27_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(27), b=>B(27), ctrSignal=>ALUctl, carryIn=>carry(26), less=>'0', carryOut=>carry(27), result=>aout(27));
+bit28_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(28), b=>B(28), ctrSignal=>ALUctl, carryIn=>carry(27), less=>'0', carryOut=>carry(28), result=>aout(28));
+bit29_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(29), b=>B(29), ctrSignal=>ALUctl, carryIn=>carry(28), less=>'0', carryOut=>carry(29), result=>aout(29));
+bit30_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(30), b=>B(30), ctrSignal=>ALUctl, carryIn=>carry(29), less=>'0', carryOut=>carry(30), result=>aout(30));
+bit31_unit: entity work.alu_1bit(alu_1bit_operation)
+port map(a=>A(31), b=>B(31), ctrSignal=>ALUctl, carryIn=>carry(30), less=>'0', carryOut=>carry(31), set_slt=>get, result=>aout(31));
+set <= get;
+ALUOut <= aout;
+Zero <= (not (aout(0) or aout(1) or aout(2) or aout(3) or aout(4) or aout(5) or aout(6) or aout(7) or 
+aout(8) or aout(9) or aout(10) or aout (11) or aout (12) or aout (13) or aout (14) or aout(15) or 
+aout(16) or aout(17) or aout(18) or aout(19) or aout(20) or aout(21) or aout(22) or aout(23) or 
+aout(24) or aout(25) or aout(26) or aout (27) or aout (28) or aout (29) or aout (30) or aout (31)));
+
+end alu_behav;
+
+**********************************************************************************
+END OF 32-BIT ALU VHDL FILE
+**********************************************************************************
+
+
+**********************************************************************************
+START OF MAIN CONTROL VHDL FILE
+**********************************************************************************
+
+--***************************************************************
+--
+-- Author: S
+ikander
+
+--  
+-- File: control.vhd
+-- Design units:
+--  ENTITY control
+--  ARCHITECTURE control_behav
+-- Purpose: function as main control circuit  
+--  Inputs:  6 bit op code
+--  Outputs: 11 1-bit control signals
+--
+-- Library/Package:
+--  ieee.std_logic_1164: to use std_logic
+--
+-- Software/Version:
+--  Simulated by: Altera Quartus v11.0
+--  Synthesized by: Altera Quartus v11.0
+--
+-- Revision History
+--  Version 1.0:
+--  Date: 9/29/2006
+--  Comments: Original
+--
+--***************************************************************
+library ieee;
+use ieee.std_logic_1164.all;
+entity control is
+port
+(
+ID_op: in std_logic_vector(5 downto 0);
+ID_ALUOp: out std_logic_vector(1 downto 0);
+ID_RegDst, ID_ALUSrc: out std_logic;
+ID_Branch, ID_MemRead, ID_MemWrite: out std_logic;
+ID_RegWrite, ID_MemToReg: out std_logic;
+ID_BranchNE, ID_Jump: out std_logic
+);
+end control;
+architecture control_behav of control is
+signal p0,p1,p2,p3,p4,p5: std_logic;
+begin
+   --loading values to variables using temp signals
+ID_RegDst <= p0;
+ID_ALUSrc <= p1 or p2;
+ID_MemToReg <= p1;
+ID_RegWrite <= p0 or p1;
+ID_MemRead <= p1;
+ID_MemWrite <= p2;
+ID_Branch <= p3;
+ID_ALUOp(1) <= p0;
+ID_ALUOp(0) <= p3 or p4;
+ID_BranchNE <= p4;
+ID_Jump <= p5;
+   --assinging values to temp signals
+p0 <= (not ID_op(5)) and (not ID_op(4)) and (not ID_op(3)) and (not ID_op(2)) and (not ID_op(1)) and (not ID_op(0));
+p1 <= ID_op(5) and (not ID_op(4)) and (not ID_op(3)) and (not ID_op(2)) and ID_op(1) and ID_op(0);
+p2 <= ID_op(5) and (not ID_op(4)) and ID_op(3) and (not ID_op(2)) and ID_op(1) and ID_op(0);
+p3 <= (not ID_op(5)) and (not ID_op(4)) and (not ID_op(3)) and ID_op(2) and (not ID_op(1)) and (not ID_op(0));
+p4 <= (not ID_op(5)) and (not ID_op(4)) and (not ID_op(3)) and ID_op(2) and (not ID_op(1)) and ID_op(0);
+p5 <= (not ID_op(5)) and (not ID_op(4)) and (not ID_op(3)) and (not ID_op(2)) and ID_op(1) and (not ID_op(0));
+end control_behav;
+
+**********************************************************************************
+END OF MAIN CONTROL VHDL FILE
+**********************************************************************************
+
+
+**********************************************************************************
+START OF 32-BIT ALU SIMULATION VHDL FILE FOR MODELSIM
+**********************************************************************************
+
+library  ieee;
+use STD.TEXTIO.all;
+use  ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.numeric_std.all;
+entity sim_alu1 is
+end sim_alu1;
+
+architecture sim_alu1_behav of sim_alu1 is
+
+signal ALUctl : std_logic_vector(3 downto 0);
+signal A,B : std_logic_vector(31 downto 0);
+signal ALUOut : std_logic_vector(31 downto 0);
+signal Zero : std_logic;
+
+component alu
+port(
+ALUctl : in std_logic_vector(3 downto 0);
+ A, B : in std_logic_vector(31 downto 0);
+ ALUOut : out std_logic_vector(31 downto 0);
+ Zero : out std_logic
+);
+end component;
+begin
+
+
+FA1: alu
+ port map(ALUctl, A, B, ALUOut, Zero);
+
+
+ALUctl <= "0111";
+A <= std_logic_vector(to_unsigned(1200,32));
+B <= std_logic_vector(to_unsigned(12000,32));
+-- #1;
+-- $display("ALUOut = ", ALUOut);
+-- $display("Zero = ", Zero);
+-- $finish;
+
+PROCESS (ALUOut,Zero)
+variable BufLine: line;
+
+variable zoutput  : integer;--:std_logic_vector(31 downto 0);
+variable zZero : integer;
+variable tmpZero : std_logic_vector(0 downto 0);
+begin
+zoutput := to_integer(unsigned(ALUOut));
+
+tmpZero(0) := Zero;
+zZero := to_integer(unsigned(tmpZero));
+
+write(bufline,string'("ALUOut: "));
+write(bufline,zoutput);
+writeline(output,bufline);
+write(bufline, string'("Zero: "));
+write(bufline,zZero);
+writeline(output,bufline);
+
+end PROCESS;
+end sim_alu1_behav;
+
+
+**********************************************************************************
+END OF 32-BIT ALU SIMULATION VHDL FILE FOR MODELSIM
+**********************************************************************************
+
+
+**********************************************************************************
+START OF  MAIN CONTROL SIMULATION VHDL FILE FOR MODELSIM
+**********************************************************************************
+
+library  ieee;
+use STD.TEXTIO.all;
+use  ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+use ieee.numeric_std.all;
+
+
+entity sim_control1 is
+
+
+end sim_control1;
+
+
+
+architecture sim_control1_behav of sim_control1 is
+
+
+signal ID_op: std_logic_vector(5 downto 0);
+signal ID_ALUOp: std_logic_vector(1 downto 0);
+signal ID_RegDst, ID_ALUSrc: std_logic;
+signal ID_Branch, ID_MemRead, ID_MemWrite: std_logic;
+signal ID_RegWrite, ID_MemToReg: std_logic;
+signal ID_BranchNE, ID_Jump: std_logic;
+
+component control
+port(
+ID_op: in std_logic_vector(5 downto 0);
+ID_ALUOp: out std_logic_vector(1 downto 0);
+ID_RegDst, ID_ALUSrc: out std_logic;
+ID_Branch, ID_MemRead, ID_MemWrite: out std_logic;
+ID_RegWrite, ID_MemToReg: out std_logic;
+ID_BranchNE, ID_Jump: out std_logic
+);
+end component;
+
+
+
+
+begin
+FA1: control
+ port map(ID_op, ID_ALUOp, ID_RegDst, ID_ALUSrc, ID_Branch, 
+ID_MemRead, ID_MemWrite, ID_RegWrite, ID_MemToReg, ID_BranchNE, ID_Jump);
+
+
+ID_op <= "000000";
+-- #1;
+-- $display("ALUOut = ", ALUOut);
+-- $display("Zero = ", Zero);
+-- $finish;
+
+
+PROCESS (ID_ALUOp, ID_RegDst, ID_ALUSrc, ID_Branch, 
+ID_MemRead, ID_MemWrite, ID_RegWrite, ID_MemToReg, ID_BranchNE, ID_Jump)
+
+
+variable BufLine: line;
+variable  ALUOp: integer;
+--variable ALUOp0: integer;
+variable  RegDst: integer;
+variable ALUSrc: integer;
+variable  Branch: integer;
+variable MemRead: integer;
+variable  MemWrite: integer;
+variable RegWrite: integer;
+variable  MemToReg: integer;
+variable BranchNE: integer;
+variable  Jump: integer;
+variable rd: std_logic_vector(0 downto 0);
+variable as: std_logic_vector(0 downto 0);
+variable b: std_logic_vector(0 downto 0);
+variable mr: std_logic_vector(0 downto 0);
+variable mw: std_logic_vector(0 downto 0);
+variable rw: std_logic_vector(0 downto 0);
+variable mtr: std_logic_vector(0 downto 0);
+variable bne: std_logic_vector(0 downto 0);
+variable j: std_logic_vector(0 downto 0);
+
+
+begin
+rd(0):= ID_RegDst;
+as(0):= ID_ALUSrc;
+b(0):= ID_Branch;
+mr(0):= ID_MemRead;
+mw(0):= ID_MemWrite;
+rw(0):= ID_RegWrite;
+mtr(0):= ID_MemToReg;
+bne(0):= ID_BranchNE;
+j(0):= ID_Jump;
+
+
+ ALUOp:=to_integer(unsigned(ID_ALUOp));
+
+ RegDst:=to_integer(unsigned(rd));
+
+ ALUSrc:=to_integer(unsigned(as));
+ Branch:=to_integer(unsigned(b));
+ MemRead:=to_integer(unsigned(mr));
+ MemWrite:=to_integer(unsigned(mw));
+ RegWrite:=to_integer(unsigned(rw));
+ MemToReg:=to_integer(unsigned(mtr));
+ BranchNE:=to_integer(unsigned(bne));
+ Jump:=to_integer(unsigned(j));
+write(bufline,string'("ID_ALUOp: "));
+write(bufline,ALUOp);
+writeline(output,bufline);
+write(bufline,string'("ID_RegDst: "));
+write(bufline,RegDst);
+writeline(output,bufline);
+write(bufline,string'("ID_ALUSrc: "));
+write(bufline,ALUSrc);
+writeline(output,bufline);
+write(bufline,string'("ID_Branch: "));
+write(bufline,Branch);
+writeline(output,bufline);
+write(bufline,string'("ID_MemRead: "));
+write(bufline,MemRead);
+writeline(output,bufline);
+write(bufline,string'("ID_MemWrite: "));
+write(bufline,MemWrite);
+writeline(output,bufline);
+write(bufline,string'("ID_RegWrite: "));
+write(bufline,RegWrite);
+writeline(output,bufline);
+write(bufline,string'("ID_MemToReg: "));
+write(bufline,MemToReg);
+writeline(output,bufline);
+write(bufline,string'("ID_BranchNE: "));
+write(bufline,BranchNE);
+writeline(output,bufline);
+write(bufline,string'("ID_Jump: "));
+write(bufline,Jump);
+writeline(output,bufline);
+
+
+end PROCESS;
+end sim_control1_behav;
+
+
+**********************************************************************************
+END OF MAIN CONTROL SIMULATION VHDL FILE FOR MODELSIM
+**********************************************************************************
+
+
+**********************************************************************************
+START OF  ALU CONTROL SIMULATION VHDL FILE FOR MODELSIM
+**********************************************************************************
+
+library  ieee;
+use STD.TEXTIO.all;
+use  ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+
+use ieee.numeric_std.all;
+
+entity sim_aluctrl1 is
+
+
+end sim_aluctrl1;
+
+
+
+
+
+architecture sim_aluctrl1_behav of sim_aluctrl1 is
+
+
+signal ALUOp: std_logic_vector(1 downto 0);
+
+signal Func: std_logic_vector(5 downto 0);
+signal ALUctl: std_logic_vector(3 downto 0);
+
+component aluctrl
+
+port(
+ALUOp: in std_logic_vector(1 downto 0);
+Func: in std_logic_vector(5 downto 0);
+ALUctl: out std_logic_vector(3 downto 0)
+);
+end component;
+
+
+
+
+begin
+FA1: aluctrl
+ port map(ALUOp, Func, ALUctl);
+
+
+
+
+ALUOp <= "10";
+Func <= "000010";
+-- #1;
+-- $display("ALUOut = ", ALUOut);
+-- $display("Zero = ", Zero);
+-- $finish;
+
+
+PROCESS (ALUctl)
+
+
+variable BufLine: line;
+variable tmp : integer;
+begin
+
+
+tmp := to_integer(unsigned(ALUctl));
+
+
+write(bufline,string'("ALUctl: "));
+write(bufline,tmp);
+writeline(output,bufline);
+end PROCESS;
+
+
+end sim_aluctrl1_behav;
+
+
+**********************************************************************************
+END OF ALU CONTROL SIMULATION VHDL FILE FOR MODELSIM
+**********************************************************************************

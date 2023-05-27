@@ -1,0 +1,206 @@
+WORNG CODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+library ieee ;
+use ieee.std_logic_1164.all ;
+use ieee.std_logic_unsigned.all ;
+
+entity hex2bcd is
+    port ( hex_in  : in  std_logic_vector (7 downto 0) ;
+           bcd_hun : out std_logic_vector (3 downto 0) ;
+           bcd_ten : out std_logic_vector (3 downto 0) ;
+           bcd_uni : out std_logic_vector (3 downto 0) ) ;
+end hex2bcd ;
+
+architecture arc_hex2bcd of hex2bcd is
+begin
+    process ( hex_in )
+        variable hex_src : std_logic_vector (7 downto 0) ;
+        variable bcd     : std_logic_vector (11 downto 0) ;
+    begin
+        hex_src := hex_in ;
+        bcd     := (others => '0') ;
+
+        for i in 0 to 7 loop
+            bcd := bcd(11 downto 1) & hex_src(7) ; -- shift bcd + 1 new entry
+            hex_src := hex_src(7 downto 1) & '0' ; -- shift src + pad with 0
+
+            if bcd(3 downto 0) > "0100" then
+                bcd(3 downto 0) := bcd(3 downto 0) + "0011" ;
+            end if ;
+            if bcd(7 downto 4) > "0100" then
+                bcd(7 downto 4) := bcd(7 downto 4) + "0011" ;
+            end if ;
+            if bcd(11 downto 8) > "0100" then
+                bcd(11 downto 8) := bcd(11 downto 8) + "0011" ;
+            end if ;
+        end loop ;
+
+        bcd_hun <= bcd(11 downto 8) ;
+        bcd_ten <= bcd(7  downto 4) ;
+        bcd_uni <= bcd(3  downto 0) ;
+
+    end process ;
+end arc_hex2bcd ;
+
+
+
+
+CORRECT CODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity bin8bcd is
+    port (
+        bin:    in  std_logic_vector (7 downto 0);
+        bcd:    out std_logic_vector (11 downto 0)
+    );
+end entity;
+
+architecture struct of bin8bcd is
+    procedure add3 (signal bin: in  std_logic_vector (3 downto 0); 
+                    signal bcd: out std_logic_vector (3 downto 0)) is
+    variable is_gt_4:  std_logic;
+    begin
+        is_gt_4 := bin(3) or (bin(2) and (bin(1) or bin(0)));
+
+        if is_gt_4 = '1' then
+        -- if to_integer(unsigned (bin)) > 4 then
+            bcd <= std_logic_vector(unsigned(bin) + "0011");
+        else
+            bcd <= bin;
+        end if;
+    end procedure;
+
+    signal U0bin,U1bin,U2bin,U3bin,U4bin,U5bin,U6bin:
+                std_logic_vector (3 downto 0);
+
+    signal U0bcd,U1bcd,U2bcd,U3bcd,U4bcd,U5bcd,U6bcd:
+                std_logic_vector (3 downto 0);       
+begin
+    U0bin <= '0' & bin (7 downto 5);
+    U1bin <= U0bcd(2 downto 0) & bin(4);
+    U2bin <= U1bcd(2 downto 0) & bin(3);
+    U3bin <= U2bcd(2 downto 0) & bin(2);
+    U4bin <= U3bcd(2 downto 0) & bin(1);
+
+    U5bin <= '0' & U0bcd(3) & U1bcd(3) & U2bcd(3);
+    U6bin <= U5bcd(2 downto 0) & U3bcd(3);
+
+U0: add3(U0bin,U0bcd);
+
+U1: add3(U1bin,U1bcd);
+
+U2: add3(U2bin,U2bcd);
+
+U3: add3(U3bin,U3bcd);
+
+U4: add3(U4bin,U4bcd);
+
+U5: add3(U5bin,U5bcd);
+
+U6: add3(U6bin,U6bcd);
+
+OUTP:
+    bcd <= '0' & '0' & U5bcd(3) & U6bcd & U4bcd & bin(0);
+
+end architecture;
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity bin8bcd_tb is
+end entity;
+
+architecture foo of bin8bcd_tb is
+    signal bin: std_logic_vector (7 downto 0) := (others => '0');
+    -- (initialized to prevent those annoying metavalue reports)
+
+    signal bcd: std_logic_vector (11 downto 0);
+
+begin
+
+DUT:
+    entity work.bin8bcd
+        port map (
+            bin => bin,
+            bcd => bcd
+        );
+
+STIMULUS:
+    process
+
+    begin
+        for i in 0 to 255 loop
+            bin <= std_logic_vector(to_unsigned(i,8));
+            wait for 1 ns;
+        end loop;
+        wait for 1 ns;
+        wait;
+    end process;
+end architecture;
+
+
+
+
+double dabble !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+process ( hex_in )
+    variable hex_src : std_logic_vector (7 downto 0) ;
+    variable bcd     : std_logic_vector (11 downto 0) ;
+begin
+    hex_src := hex_in ;
+    bcd     := (others => '0') ;
+
+    for i in 0 to 7 loop
+        if bcd(3 downto 0) > "0100" then
+            bcd(3 downto 0) := bcd(3 downto 0) + "0011" ;
+        end if ;
+        if bcd(7 downto 4) > "0100" then
+            bcd(7 downto 4) := bcd(7 downto 4) + "0011" ;
+        end if ;
+        if bcd(11 downto 8) > "0100" then
+            bcd(11 downto 8) := bcd(11 downto 8) + "0011" ;
+        end if ;
+
+        bcd := bcd(10 downto 0) & hex_src(7) ; -- shift bcd + 1 new entry
+        hex_src := hex_src(6 downto 0) & '0' ; -- shift src + pad with 0
+    end loop ;
+
+    bcd_hun <= bcd(11 downto 8) ;
+    bcd_ten <= bcd(7  downto 4) ;
+    bcd_uni <= bcd(3  downto 0) ;
+
+end process ;
+
+However, the implementation may require a slow clock...
+
+Based on Davids observations in the comments, the code be optimized to:
+
+process ( hex_in )
+    variable hex_src : std_logic_vector (4 downto 0) ;
+    variable bcd     : std_logic_vector (11 downto 0) ;
+begin
+    bcd             := (others => '0') ;
+    bcd(2 downto 0) := hex_in(7 downto 5) ;
+    hex_src         := hex_in(4 downto 0) ;
+
+    for i in hex_src'range loop
+        if bcd(3 downto 0) > "0100" then
+            bcd(3 downto 0) := bcd(3 downto 0) + "0011" ;
+        end if ;
+        if bcd(7 downto 4) > "0100" then
+            bcd(7 downto 4) := bcd(7 downto 4) + "0011" ;
+        end if ;
+        -- No roll over for hundred digit, since in 0 .. 2
+
+        bcd := bcd(10 downto 0) & hex_src(hex_src'left) ; -- shift bcd + 1 new entry
+        hex_src := hex_src(hex_src'left - 1 downto hex_src'right) & '0' ; -- shift src + pad with 0
+    end loop ;
+
+    bcd_hun <= bcd(11 downto 8) ;
+    bcd_ten <= bcd(7  downto 4) ;
+    bcd_uni <= bcd(3  downto 0) ;
+end process ;

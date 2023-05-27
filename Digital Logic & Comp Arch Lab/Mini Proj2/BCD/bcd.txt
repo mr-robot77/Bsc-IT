@@ -1,0 +1,125 @@
+ 8 bit Binary to BCD converter - Double Dabble algorithm
+    I have written a function for converting a 8-bit binary signal into a 12 bit BCD ( consisting of 3 BCD digits).An algorithm known as "double dabble" is used for this.The explanation for the algorithm can be found here.
+
+The function code is given below:
+
+function to_bcd ( bin : std_logic_vector(7 downto 0) ) return std_logic_vector is
+variable i : integer:=0;
+variable bcd : std_logic_vector(11 downto 0) := (others => '0');
+variable bint : std_logic_vector(7 downto 0) := bin;
+
+begin
+for i in 0 to 7 loop  -- repeating 8 times.
+bcd(11 downto 1) := bcd(10 downto 0);  --shifting the bits.
+bcd(0) := bint(7);
+bint(7 downto 1) := bint(6 downto 0);
+bint(0) :='0';
+
+
+if(i < 7 and bcd(3 downto 0) > "0100") then --add 3 if BCD digit is greater than 4.
+bcd(3 downto 0) := bcd(3 downto 0) + "0011";
+end if;
+
+if(i < 7 and bcd(7 downto 4) > "0100") then --add 3 if BCD digit is greater than 4.
+bcd(7 downto 4) := bcd(7 downto 4) + "0011";
+end if;
+
+if(i < 7 and bcd(11 downto 8) > "0100") then  --add 3 if BCD digit is greater than 4.
+bcd(11 downto 8) := bcd(11 downto 8) + "0011";
+end if;
+
+
+end loop;
+return bcd;
+end to_bcd;
+
+Some sample inputs and the corresponding outputs are shown below:
+bin = "01100011"   ,     output = "0000 1001 1001"  (99).
+bin = "11111110"   ,     output = "0010 0101 0100"  (254).
+bin = "10111011"   ,     output = "0001 1000 0111"  (187).
+
+
+
+
+
+
+
+
+
+
+
+LIBRARY ieee;
+USE ieee.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use IEEE.numeric_bit.all;
+use IEEE.numeric_std.all;
+use IEEE.std_logic_signed.all;
+
+ENTITY ten_to_bcd IS
+PORT ( b: IN std_logic_vector (7 downto 0) ; -- 10 bits input
+y: OUT std_logic_vector( 11 downto 0)); -- 16 bits output / 4 digits
+END ten_to_bcd;
+
+ARCHITECTURE double_d OF ten_to_bcd IS
+
+function dd( bin : std_logic_vector(7 downto 0) ) return std_logic_vector is
+variable i : integer:=0;
+variable bcd : std_logic_vector(11 downto 0) := "000000000000";
+variable bint : std_logic_vector(7 downto 0) := bin;
+variable kk : integer
+
+begin
+for i in 0 to 7 loop -- repeating 8 times.
+bcd(11 downto 1) := bcd(10 downto 0); --shifting the bits.
+bcd(0) := bint(7);
+bint(7 downto 1) := bint(6 downto 0);
+bint(0) :='0';
+
+
+if(i < 7 and bcd(3 downto 0) > "0100") then --add 3 if BCD digit is greater than 4.
+bcd(3 downto 0) := bcd(3 downto 0) + "0011";
+end if;
+
+if(i < 7 and bcd(7 downto 4) > "0100") then --add 3 if BCD digit is greater than 4.
+bcd(7 downto 4) := bcd(7 downto 4) + "0011";
+end if;
+
+if(i < 7 and bcd(11 downto 8) > "0100") then --add 3 if BCD digit is greater than 4.
+bcd(11 downto 8) := bcd(11 downto 8) + "0011";
+end if;
+
+end loop;
+return bcd;
+end dd;
+
+begin
+p:process(b)
+begin
+y <= dd(b);
+end process;
+END double_d;
+
+
+so, I have some problem like when I run the simulation and when it get thought 15 , the value doesn't change to 16 but it shows 10 as tbl file mentioned below
+
+0.0> 000 = 0000
+10.0> 001 = 0001
+20.0> 002 = 0002
+30.0> 003 = 0003
+40.0> 004 = 0004
+50.0> 005 = 0005
+60.0> 006 = 0006
+70.0> 007 = 0007
+80.0> 008 = 0008
+90.0> 009 = 0009
+100.0> 00A = 0010
+110.0> 00B = 0011
+120.0> 00C = 0012
+130.0> 00D = 0013
+140.0> 00E = 0014
+150.0> 00F = 0015
+160.0> 010 = 0010
+170.0> 011 = 0011
+180.0> 012 = 0012
+190.0> 013 = 0013
+200.0> 014 = 0020 

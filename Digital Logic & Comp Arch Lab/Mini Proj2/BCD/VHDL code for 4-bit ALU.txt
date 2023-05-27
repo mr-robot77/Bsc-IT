@@ -1,0 +1,149 @@
+VHDL Code for 4-bit ALU
+
+	
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+ 
+entity alu is
+port(   Clk : in std_logic; --clock signal
+        A,B : in signed(3 downto 0); --input operands
+        S : in unsigned(2 downto 0); --Operation to be performed
+        F : out signed(3 downto 0)  --output of ALU
+        );
+end alu;
+ 
+architecture Behavioral of alu is
+ 
+signal t1,t2,t3: signed(3 downto 0) := (others => '0');
+ 
+begin
+ 
+t1<= A;
+t2<= B;
+F<= t3;
+ 
+process(Clk)
+begin
+ 
+    if(rising_edge(Clk)) then --Do the calculation at the positive edge of clock cycle.
+        case S is
+            when "000" =>
+                t3<= t1 + t2;  --addition
+            when "001" =>
+                t3<= t1 - t2; --subtraction
+            when "010" =>
+                t3<= t1 - 1;  --sub 1
+            when "011" =>
+                t3<= t1 + 1; --add 1
+            when "100" =>
+                t3<= t1 and t2; --AND gate              
+            when "101" =>
+                t3<= t1 or t2;  --OR gate
+            when "110" =>
+                t3<= not t1 ;  --NOT gate   
+            when "111" =>
+                t3<= t1 xor t2; --XOR gate  
+            when others =>
+                NULL;
+        end case;      
+    end if;
+     
+end process;   
+ 
+end Behavioral;
+
+
+
+
+
+Testbench VHDL Code for 4-Bit ALU
+
+	
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+ 
+  
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--USE ieee.numeric_std.ALL;
+  
+ENTITY tb_alu IS
+END tb_alu;
+  
+ARCHITECTURE behavior OF tb_alu IS
+  
+    -- Component Declaration for the Unit Under Test (UUT)
+  
+    COMPONENT alu
+    PORT(
+         Clk : IN  std_logic;
+         A : IN  signed(3 downto 0);
+         B : IN  signed(3 downto 0);
+         S : IN  unsigned(2 downto 0);
+         F : OUT  signed(3 downto 0)
+        );
+    END COMPONENT;
+     
+ 
+   --Inputs
+   signal Clk : std_logic := '0';
+   signal A : signed(3 downto 0) := (others => '0');
+   signal B : signed(3 downto 0) := (others => '0');
+   signal S : unsigned(2 downto 0) := (others => '0');
+ 
+    --Outputs
+   signal F : signed(3 downto 0);
+ 
+   -- Clock period definitions
+   constant Clk_period : time := 20 ns;
+  
+BEGIN
+  
+    -- Instantiate the Unit Under Test (UUT)
+   uut: alu PORT MAP (
+          Clk => Clk,
+          A => A,
+          B => B,
+          S => S,
+          F => F
+        );
+ 
+   -- Clock process definitions
+   Clk_process :process
+   begin
+        Clk <= '0';
+        wait for Clk_period/2;
+        Clk <= '1';
+        wait for Clk_period/2;
+   end process;
+  
+ 
+   -- Stimulus process
+   stim_proc: process
+   begin       
+      -- hold reset state for 100 ns.
+      wait for 100 ns; 
+            A <= "1001";
+            B <= "1111";
+             
+            S <= "000";
+            wait for 20 ns;
+            S <= "001";
+            wait for 20 ns;
+            S <= "010";
+            wait for 20 ns;
+            S <= "011";
+            wait for 20 ns;
+            S <= "100";
+            wait for 20 ns;
+            S <= "101";
+            wait for 20 ns;
+            S <= "110";
+            wait for 20 ns;
+            S <= "111";
+      wait;
+   end process;
+ 
+END;
