@@ -1,0 +1,218 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date:    22:43:34 12/20/2015 
+-- Design Name: 
+-- Module Name:    stopwatch - Behavioral 
+-- Project Name: 
+-- Target Devices: 
+-- Tool versions: 
+-- Description: 
+--
+-- Dependencies: 
+--
+-- Revision: 
+-- Revision 0.01 - File Created
+-- Additional Comments: 
+--
+----------------------------------------------------------------------------------
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx primitives in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity stopwatch is
+    Port ( clk : in  STD_LOGIC; --clock(400 MHZ)
+           key : in  STD_LOGIC; --stop key
+           rst : in  STD_LOGIC;
+           sel : out  STD_LOGIC_VECTOR (4 downto 0);
+           digit : out  STD_LOGIC_VECTOR (7 downto 0));
+end stopwatch;
+
+architecture main_func of stopwatch is
+
+   signal digit_cnt1 : integer range 0 to 9;
+   signal digit_cnt2 : integer range 0 to 9;
+   signal digit_cnt3 : integer range 0 to 9;
+   signal digit_cnt4 : integer range 0 to 9;
+	signal digit_sel1 : STD_LOGIC_VECTOR(7 downto 0);
+	signal digit_sel2 : STD_LOGIC_VECTOR(7 downto 0);
+	signal digit_sel3 : STD_LOGIC_VECTOR(7 downto 0);
+	signal digit_sel4 : STD_LOGIC_VECTOR(7 downto 0);
+
+begin
+ process(clk,rst,key)
+ variable clk_cnt :integer;
+   begin
+	-- Display and keys
+       if (rst='0') 
+		 then cnt :=0;
+           digit_cnt1 <= 0;
+           digit_cnt2 <= 0;
+           digit_cnt3 <= 0;
+           digit_cnt4 <= 0;
+   elsif (clk = '1' and clk'event)
+	then if (clk_cnt<400000) then
+	if (key='0')
+	then clk_cnt:= clk_cnt + 1 ;
+           else clk_cnt :=0;
+			  if (digit_cnt1 < 10)
+			  then digit_cnt1 <= digit_cnt1 + 1 ;
+			  else digit_cnt1 <= 0 ;
+			  
+			  if (digit_cnt2 < 10)
+			  then digit_cnt2 <= digit_cnt2 + 1 ;
+			  else digit_cnt2 <= 0 ;
+			  
+			  if (digit_cnt3 < 10)
+			  then digit_cnt3 <= digit_cnt3 + 1 ;
+			  else digit_cnt3 <= 0 ;
+			  
+			  if (digit_cnt4 < 10)
+			  then digit_cnt4 <= digit_cnt4 + 1 ;
+			  else digit_cnt4 <= 0 ;
+       end if;
+       end if;
+		 end if;
+		 end if;
+		 end if;
+		 end if;
+		 end if;
+   end process;
+	
+	with digit_cnt1 select
+	digit_sel1 <= 0 when "11000000";
+              <= 1 when "11111001";
+              <= 2 when "10100100";
+              <= 3 when "10110000";
+              <= 4 when "10011001";
+              <= 5 when "10010010";
+              <= 6 when "10000010";
+              <= 7 when "11111000";
+              <= 8 when "10000000";
+              <= 9 when "10010000";
+              <= others when "10000110";
+				  
+	with digit_cnt2 select
+	digit_sel2 <= 0 when"11000000";
+              <= 1 when"11111001";
+              <= 2 when"10100100";
+              <= 3 when"10110000";
+              <= 4 when"10011001";
+              <= 5 when"10010010";
+              <= 6 when"10000010";
+              <= 7 when"11111000";
+              <= 8 when"10000000";
+	           <= 9 when"10010000" ;
+              <= others when "10000110"; 
+   with digit_cnt3 select
+   digit_sel3 <= 0 when"11000000";
+              <= 1 when"11111001";
+              <= 2 when"10100100";
+              <= 3 when"10110000";
+              <= 4 when"10011001";
+              <= 5 when"10010010";
+              <= 6 when"10000010";
+              <= 7 when"11111000";
+              <= 8 when"10000000";
+	           <= 9 when"10010000" ;
+              <= others when "10000110";
+				  
+   with digit_cnt4 select
+	digit_sel4 <= 0 when"11000000";
+              <= 1 when"11111001";
+              <= 2 when"10100100";
+              <= 3 when"10110000";
+              <= 4 when"10011001";
+              <= 5 when"10010010";
+              <= 6 when"10000010";
+              <= 7 when"11111000";
+              <= 8 when"10000000";
+	           <= 9 when"10010000" ;
+              <= others when "10000110"; 
+	 process(clk)
+       variable clk_cnt_hunscnt : integer;
+		 variable hunscnt :integer;
+		  variable clk_cnt_tenscnt : integer;
+		  variable tenscnt :integer;
+       variable clk_cnt_onescnt : integer;
+		 variable onescnt :integer;
+		  variable clk_cnt_tencnt : integer;
+		  variable tencnt :integer;
+       variable flag : integer;  --this is carry
+			  begin
+	  -- Begin the hunscnt normally put 400_000_000 / 1000 which equals 400_000,
+       -- Starts the count independent of the others
+           if clk_cnt_hunscnt = 400000 then
+               clk_cnt_hunscnt := 0;
+                   if digit_cnt1 = 9 then
+                       digit_cnt2 <= digit_cnt2 + 1;
+                       digit_cnt1 <= 0;
+                   else  
+                           digit_cnt1 <= digit_cnt1 + 1;
+               end if;
+           else
+               clk_cnt_hunscnt := clk_cnt_hunscnt + 1;
+       end if;
+				  	 -- Begin the tenscnt normally put 400_000_000 / 100 which equals 4_000_000,
+       -- Starts the count independent of the others
+           if clk_cnt_tenscnt = 4000000 then
+               clk_cnt_tenscnt := 0;
+                   if digit_cnt1 = 9 then
+                       digit_cnt2 <= digit_cnt2 + 1;
+                       digit_cnt1 <= 0;
+                   else  
+                           digit_cnt1 <= digit_cnt1 + 1;
+         end if;
+           else
+               clk_cnt_tenscnt := clk_cnt_tenscnt + 1;
+       end if; 
+				   -- Begin the tenscnt normally put 400_000_000 / 10 which equals 40_000_000,
+       -- Starts the count independent of the others
+           if clk_cnt_onescnt = 40000000 then
+               clk_cnt_onescnt := 0;
+                   if digit_cnt1 = 9 then
+                       digit_cnt2 <= digit_cnt2 + 1;
+                       digit_cnt1 <= 0;
+                   else  
+                           digit_cnt1 <= digit_cnt1 + 1;
+               end if;
+           else
+               clk_cnt_onescnt := clk_cnt_onescnt + 1;
+       end if;
+				    -- Begins the tencnt on the stopwatch
+       -- Implement 400_000_000 beginning of second
+       if clk_cnt_tencnt = 400000000 then
+           clk_cnt_tencnt := 0;
+           flag := 0;
+           if digit_cnt3 = 9 and digit_cnt4 = 9 then
+               digit_cnt4 <= 0;
+               digit_cnt3 <= 0;
+               flag := 1;
+           else
+               if digit_cnt3 = 9 then
+                   digit_cnt4 <= digit_cnt4 + 1;
+                   digit_cnt3 <= 0;
+                   flag := 0;
+               else  
+                       digit_cnt3 <= digit_cnt3 + 1;
+                       flag := 0;
+               end if;
+           end if;
+       else
+           clk_cnt_tencnt := clk_cnt_tencnt + 1;
+           flag := 0;
+       end if;
+       if flag = 1 then
+           flag := 0;
+       end if;
+ end process;
+		 end main_func;
