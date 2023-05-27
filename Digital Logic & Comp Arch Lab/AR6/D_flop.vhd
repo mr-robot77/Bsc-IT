@@ -1,0 +1,22 @@
+library ieee;
+use ieee. std_logic_1164.all;
+use ieee. std_logic_arith.all; 
+use ieee. std_logic_unsigned.all;
+
+entity flop is
+  port (res, din, clk : in bit; 
+  qout : buffer bit := '0');
+end flop;
+architecture behavioral of flop is
+begin
+  process (clk)
+  begin
+    if (clk = '0' and clk'event) then
+      if res = '1' then
+         qout <= '0' ;
+      else
+         qout <= din ;
+      end if;
+    end if;
+  end process;
+end behavioral;

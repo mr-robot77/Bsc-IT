@@ -1,0 +1,11 @@
+library ieee;
+use ieee.std_logic_1164.all;
+entity fa is
+  port(x,y,z:in std_logic;
+    s,c:out std_logic);
+  end fa;
+  architecture behav of fa is
+    begin
+      s <= x xor y xor z;
+      c<=(x and y) or (x and z) or (y and z);
+    end behav;

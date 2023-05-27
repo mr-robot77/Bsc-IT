@@ -1,0 +1,21 @@
+library ieee;
+use ieee. std_logic_1164.all;
+use ieee. std_logic_arith.all; 
+use ieee. std_logic_unsigned.all;
+
+entity sh2 is
+  
+  port (sin, res, en, clk : in bit; 
+        sout :   buffer bit_vector(7 downto 0));
+end sh2 ; 
+
+Architecture behave of shifter is
+   begin
+   
+   process (clk)
+       begin
+         
+     sout <= sout(0) & sout(7 downto 1) ;
+       
+   end process ;
+ end;  

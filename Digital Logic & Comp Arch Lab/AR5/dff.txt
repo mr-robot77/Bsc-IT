@@ -1,0 +1,18 @@
+Library ieee;
+use ieee.std_logic_1164.all;
+entity DFF is
+  port(d,clk,rst : in std_logic;
+       q : out std_logic);
+     end DFF;
+architecture struct2 of DFF is
+  begin
+    process(clk)
+      begin
+      if(clk'event and clk='1')
+      then if(rst='1')
+      then Q<='0';
+      else Q<=d;
+      end if;
+    end if;
+    end process;
+      end struct2;

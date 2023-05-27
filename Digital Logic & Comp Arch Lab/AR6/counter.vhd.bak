@@ -1,0 +1,29 @@
+library ieee;
+use ieee. std_logic_1164.all;
+use ieee. std_logic_arith.all; 
+use ieee. std_logic_unsigned.all;
+
+entity counter is
+  port (res, clk : in bit;
+   counting : out bit := '0');
+end counter;
+architecture behavioral of counter is
+begin
+  process (clk)
+  variable count : integer := 8 ;
+  begin
+   if (clk = '0' and clk'event) then
+      if res = '1' then
+        count := 0 ;
+      else
+        if count < 8 then count := count + 1;
+      end if;
+      end if;
+       if count = 8 then
+        counting <= '0' ;
+        else
+        counting <= '1' ;
+   end if;
+end if;
+ end process ;
+end behavioral;

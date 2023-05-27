@@ -1,0 +1,87 @@
+library ieee;
+use ieee.std_logic_1164.all;
+entity mux is
+   port(m:in std_logic_vector(3 downto 0);
+    Si:in std_logic_vector(1 downto 0);
+    Ct:out std_logic);
+    end;
+  architecture behav of mux is
+    begin
+       Ct<=m(0) when Si(0)='0',Si(1)='0' else
+      m(1) when Si(0)='0',Si(1)='1' else
+      m(2) when Si(0)='1',Si(1)='0' else
+      m(3) when Si(0)='1',Si(1)='1';
+      end;
+  
+
+
+
+
+
+
+library ieee;
+use ieee.std_logic_1164.all;
+Entity shift_rg is
+port(I:in std_logic_vector(3 downto 0);
+S:in std_logic_vector(1 downto 0);
+W,clk1,rst1:in std_logic;
+A:inout std_logic_vector(3 downto 0));
+End;
+
+
+
+architecture behav of shift_rg is
+
+
+--component declaration
+component MUX
+  port(m:in std_logic_vector(3 downto 0);
+    Si:in std_logic_vector(1 downto 0);
+    Ct:out std_logic);
+   
+End component;
+
+
+
+--component declaration
+component D_ff
+ port(d,clk,rst:in std_logic;
+       q:out std_logic);
+End component;
+
+
+
+signal G:std_logic_vector(1 Downto 0);
+begin
+process(clk1,rst1)
+begin
+if(clk1'event and clk1='1')then
+if(S0='0' and S1='0')then
+ A<=A;
+elsif(S0='1' and S1='0')then
+A(2 downto 0)<=A(3 downto 1);
+elsif(S0='0' and S1='1')then
+A(3 downto 1)<=A(2 downto 0);
+elsif(S0='1' and S1='1')then
+A<=I;
+elsif(rst1='0')then
+A<=A;
+end if;
+end if;
+end process;
+
+	 
+      --component instant
+	  U1:MUX port map(m(0)=>A(0),m(1)=>A(1),m(2)=>W,m(3)=>I(0),Si0=>S0,Si1=>S1,Ct=>G(0));
+	  U2:MUX port map(m(0)=>A(1),m(1)=>A(2),m(2)=>A(0),m(3)=>I(1),Si0=>S0,Si1=>S1,Ct=>G(1));
+	  U3:MUX port map(m(0)=>A(2),m(1)=>A(3),m(2)=>A(1),m(3)=>I(2),Si0=>S0,Si1=>S1,Ct=>G(2));
+	  U4:MUX port map(m(0)=>A(3),m(1)=>W,m(2)=>A(2),m(3)=>I(3),Si0=>S0,Si1=>S1,Ct=>G(3));
+	  U5:D_ff port map(d=>G(0),q=>A(0),clk=>clk1,rst=>rst1);
+	  U6:D_ff port map(d=>G(1),q=>A(1),clk=>clk1,rst=>rst1);
+	  U7:D_ff port map(d=>G(2),q=>A(2),clk=>clk1,rst=>rst1);
+	  U8:D_ff port map(d=>G(3),q=>A(3),clk=>clk1,rst=>rst1);
+	  End; 
+
+
+
+
