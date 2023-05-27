@@ -1,0 +1,54 @@
+#include <time.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <stdlib.h> 
+#include <sys/utsname.h>
+#include <linux/kernel.h>
+//#include <usr/include/sys/sys.h>
+#include <stdio.h>
+#include <sys/sysinfo.h>
+///////////////////////////////////
+// measure user and system time using the "getrusage" call. 
+///////////////////////////////////
+//struct rusage {
+//   struct timeval ru_utime; /* user CPU time used */
+//   struct timeval ru_stime; /* system CPU time used */
+//};
+//struct timeval
+//  {
+//    long int tv_sec;       /* Seconds.  */
+//    long int tv_usec;      /* Microseconds.  */
+//  };
+ main () 
+{ 
+    struct rusage buf; 
+    // chew up some CPU time
+    int i,j; for (i=0,j=0; i<100000000; i++) { j+=i*i; }     
+    getrusage(RUSAGE_SELF, &buf); 
+    printf("user seconds without microseconds: %ld\n", buf.ru_utime.tv_sec); 
+    printf("user microseconds: %ld\n", buf.ru_utime.tv_usec); 
+    printf("total user seconds: %e\n", 
+	   (double) buf.ru_utime.tv_sec 
+	 + (double) buf.ru_utime.tv_usec / (double) 1000000); 
+} 
+double getcputime(void)        
+             { 
+	       struct timeval tim;        
+               struct rusage ru;        
+               getrusage(RUSAGE_SELF, &ru);        
+               tim=ru.ru_utime;        
+               double t=(double)tim.tv_sec + (double)tim.tv_usec / 1000000.0;        
+               tim=ru.ru_stime;        
+               t+=(double)tim.tv_sec + (double)tim.tv_usec / 1000000.0;        
+               return t; 
+}
+void print_cpu_time()
+{
+ struct rusage usage;
+ getrusage (RUSAGE_SELF, &usage);
+ printf ("CPU time: %ld.%06ld sec user, %ld.%06ld sec system\n",
+     usage.ru_utime.tv_sec, usage.ru_utime.tv_usec,
+     usage.ru_stime.tv_sec, usage.ru_stime.tv_usec);
+}

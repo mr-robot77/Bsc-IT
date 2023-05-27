@@ -1,0 +1,18 @@
+HomeWork4:hello
+hello: main.o 
+	g++ -o hello  main.o 
+
+main.o:main.cpp
+	g++ -c main.cpp 
+
+factorial.o:factorial.cpp
+	 g++ -c factorial.cpp
+
+hello.o:hello.cpp
+	g++ -c hello.cpp
+
+clean:
+	rm -rf *.o hello
+
+
+
